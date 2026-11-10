@@ -340,6 +340,28 @@ def test_reorder():
         Product(x*y, (y, c, d), (x, a, b))
 
 
+def test_product_polynomial_partly_unsolved_roots():
+    # issue #31017 (item C3): the polynomial branch of _eval_product crashed
+    # with AttributeError: 'Poly' object has no attribute 'is_polynomial'
+    # whenever roots() could not solve the polynomial completely (quo()
+    # returns a Poly, which was passed to Product), and the residual divisor
+    # Q was built from the upper limit n instead of k.
+    # no roots found at all -> unevaluated Product, no crash:
+    p = product(k**5 - k + 1, (k, 1, n))
+    assert p == Product(k**5 - k + 1, (k, 1, n))
+    # one rational root found, quintic factor unsolvable -> exact
+    # factorization into the solved part and an unevaluated residual
+    p2 = product((k - 1)*(k**5 - k - 1), (k, 2, n))
+    assert p2 == factorial(n - 1)*Product(k**5 - k - 1, (k, 2, n))
+    assert simplify(p2.subs(n, 6) -
+        Product((k - 1)*(k**5 - k - 1), (k, 2, 6)).doit()) == 0
+    # fully solved roots still give the closed RisingFactorial form
+    p3 = product(3*(k**2 - 2)*(k - Rational(1, 2)), (k, 1, n))
+    assert p3 == 3**n*rf(Rational(1, 2), n)*rf(1 - sqrt(2), n)*rf(1 + sqrt(2), n)
+    assert simplify(p3.subs(n, 5) -
+        Product(3*(k**2 - 2)*(k - Rational(1, 2)), (k, 1, 5)).doit()) == 0
+
+
 def test_Product_is_convergent():
     assert Product(1/n**2, (n, 1, oo)).is_convergent() is S.false
     assert Product(exp(1/n**2), (n, 1, oo)).is_convergent() is S.true

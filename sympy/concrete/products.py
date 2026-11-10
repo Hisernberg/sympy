@@ -328,11 +328,20 @@ class Product(ExprWithIntLimits):
             for r, m in all_roots.items():
                 M += m
                 A *= RisingFactorial(a - r, n - a + 1)**m
-                Q *= (n - r)**m
+                Q *= (k - r)**m
 
             if M < poly.degree():
-                arg = quo(poly, Q.as_poly(k))
-                B = self.func(arg, (k, a, n)).doit()
+                # Remove the factors for the roots that were found.  The
+                # remaining monic polynomial has no closed-form product in
+                # general, so its product is left unevaluated; calling doit()
+                # here would re-enter this branch on the same roots and
+                # recurse forever.  quo() returns a Poly, which has to be
+                # converted back to an expression before building a Product
+                # (a Poly is not a valid Product term), and the residual is
+                # divided by the leading coefficient so that the factored-out
+                # LC**(n - a + 1) stays exact.
+                R = quo(poly, Q.as_poly(k)).as_expr()/poly.LC()
+                B = self.func(R, (k, a, n))
 
             return poly.LC()**(n - a + 1) * A * B
 
