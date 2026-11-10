@@ -2384,12 +2384,16 @@ def _meijergexpand(func, z0, allow_hyper=False, rewrite='default',
     m = func(z)
     if m.delta > 0 or \
         (m.delta == 0 and len(m.ap) == len(m.bq) and
-            (re(m.nu) < -1) is not False and polar_lift(z0) == polar_lift(1)):
+            (re(m.nu) < -1) is not S.false and polar_lift(z0) == polar_lift(1)):
         # The condition delta > 0 means that the convergence region is
         # connected. Any expression we find can be continued analytically
         # to the entire convergence region.
         # The conditions delta==0, p==q, re(nu) < -1 imply that G is continuous
-        # on the positive reals, so the values at z=1 agree.
+        # on the positive reals, so the values at z=1 agree.  Note that the
+        # continuity test has to compare against S.false: for a numeric nu,
+        # (re(m.nu) < -1) evaluates to a SymPy BooleanFalse, which is never
+        # Python False, so an `is not False` test silently passed for every
+        # nu and claimed continuity at z=1 even for G with a pole there.
         if cond1 is not False:
             cond1 = True
         if cond2 is not False:

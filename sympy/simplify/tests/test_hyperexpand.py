@@ -460,6 +460,23 @@ def test_meijerg_expand_fail():
     assert can_do_meijer([S.Half], [], [-a, a], [0])
 
 
+def test_meijerg_expand_discontinuous_at_one():
+    # issue #31017 (item W12): for a Meijer G with a pole/branch point at
+    # z=1 (re(nu) = -1/2 >= -1, so the continuity condition fails), the
+    # expansion must not claim that the two branches agree at z=1.  The
+    # continuity test compared the SymPy BooleanFalse against Python False,
+    # which is never true, so conds were always cleared and
+    # hyperexpand(meijerg(...).subs(z, 1)) returned 0 for this G.
+    from sympy.functions.elementary.complexes import Abs
+    z = symbols('z')
+    G = meijerg([[], [S.Half]], [[0], []], z)
+    assert hyperexpand(G) == Piecewise(
+        (1/(sqrt(pi)*sqrt(1 - z)), Abs(z) < 1),
+        (0, 1/Abs(z) < 1),
+        (G.func(*G.args), True))
+    assert hyperexpand(G.subs(z, 1)) == meijerg([], [S.Half], [0], [], 1)
+
+
 @slow
 def test_meijerg():
     # carefully set up the parameters.
