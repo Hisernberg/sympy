@@ -2970,3 +2970,17 @@ def _get_all_examples():
     _get_examples_ode_sol_linear_coefficients
 
     return all_examples
+
+
+def test_2nd_2F1_hypergeometric_nonreal_roots_regression():
+    # issue #31017 (item C2, regression): the 2F1 matcher picked the
+    # parameter c with min(list(roots(...))) which raises TypeError
+    # ("Invalid comparison of non-real") when the roots are not real,
+    # killing the whole dsolve call.  The matcher now declines the match
+    # so dsolve falls back to the remaining hints (as in 1.14.0).
+    x = Symbol('x')
+    f = Function('f')
+    eq = f(x).diff(x, 2) + f(x).diff(x)/(x + 2) + f(x)/(x + 1)**2
+    from sympy import Order
+    sol = dsolve(eq, f(x))
+    assert sol.has(Order) or checkodesol(eq, sol)[0]

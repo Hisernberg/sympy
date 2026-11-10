@@ -198,7 +198,15 @@ def match_2nd_2F1_hypergeometric(I, k, sing_point, func):
 
     _c = 1 - factor(sqrt(1+eqs[2].lhs))
     if not _c.has(Symbol):
-        _c = min(list(roots(eqs[2], c)))
+        # min() is undefined for non-real roots: comparing complex numbers
+        # raised TypeError ("Invalid comparison of non-real"), which killed
+        # the whole dsolve call instead of letting it try other hints.
+        # Restrict the selection to real roots; if there are none, decline
+        # the 2F1 match so dsolve falls through to the remaining hints.
+        real_roots = [rt for rt in roots(eqs[2], c) if rt.is_real is True]
+        if not real_roots:
+            return None
+        _c = min(real_roots)
     _s = factor(sqrt(eqs[0].lhs + 1))
     _r = _c - factor(sqrt(_c**2 + _s**2 + eqs[1].lhs - 2*_c))
     _a = (_r + _s)/2
