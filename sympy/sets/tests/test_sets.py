@@ -302,6 +302,11 @@ def test_union():
 
     assert Union(S.Reals, S.Integers) == S.Reals
 
+    # issue 31017 (item C4): a bare `in` containment check on a FiniteSet
+    # with a symbolic member raised TypeError("did not evaluate to a bool")
+    U = Union(Interval.open(-1, 1), FiniteSet(x, 1))
+    assert U == Union({x}, Interval.Lopen(-1, 1))
+
 
 def test_union_iter():
     # Use Range because it is ordered

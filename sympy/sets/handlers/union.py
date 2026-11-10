@@ -124,9 +124,13 @@ def _(a, b):
                                       sympify(b.contains(a.end)) is S.true and
                                       a.end.is_finite)
     if open_left_in_b_and_finite or open_right_in_b_and_finite:
-        # Fill in my end points and return
-        open_left = a.left_open and a.start not in b
-        open_right = a.right_open and a.end not in b
+        # Fill in my end points and return.  Use the same safe containment
+        # test as the guards above: a bare ``in`` check on a set with
+        # symbolic members tries to bool-evaluate a Relational and raises
+        # TypeError ("did not evaluate to a bool").  When containment is
+        # undecidable, keep the endpoint open.
+        open_left = a.left_open and sympify(b.contains(a.start)) is not S.true
+        open_right = a.right_open and sympify(b.contains(a.end)) is not S.true
         new_a = Interval(a.start, a.end, open_left, open_right)
         return {new_a, b}
     return None
