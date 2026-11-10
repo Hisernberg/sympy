@@ -305,6 +305,14 @@ class LRASolver():
             # 2x + 3y, 1 <- _sep_const_coeff(2x + 3y + 2)
             vars, var_coeff = _sep_const_coeff(vars)
             const = const / var_coeff
+            # Stripping the constant coefficient can expose new constant
+            # terms when the expression was an unexpanded Mul, e.g.
+            # _sep_const_coeff turns pi*(x + 1) into x + 1; separate them so
+            # that every term handed to Add.make_args below contains a
+            # variable (otherwise a bare constant was treated as a variable
+            # and tripped the assertion below). See issue #31017 (item C10).
+            vars, extra_const = _sep_const_terms(vars)
+            const += extra_const
             # Example: [2x, 3y] <- Add.make_args(2x + 3y)
             terms = Add.make_args(vars)
             for term in terms:

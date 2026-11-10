@@ -764,3 +764,13 @@ def test_backtracking_empty_history():
     lra, _ = LRASolver.from_encoded_cnf(enc, testing_mode=True)
 
     raises(ValueError, lambda: lra.backtrack())
+
+
+def test_unexpanded_mul_with_trivial_constant():
+    # issue #31017 (item C10): an unexpanded Mul like pi*(x + 1) lost its
+    # constant term after _sep_const_coeff stripped pi, leaving a bare
+    # constant that was treated as a variable and tripped an AssertionError.
+    from sympy import Symbol, ask, pi
+    x = Symbol('x', real=True)
+    assert ask(Q.positive(x), Q.gt(pi*(x + 1), 0)) is None
+    assert ask(Q.positive(x), Q.gt(2*(x + 1), 0)) is None
