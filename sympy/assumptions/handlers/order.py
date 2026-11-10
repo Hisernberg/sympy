@@ -7,7 +7,7 @@ from sympy.assumptions import Q
 from sympy.assumptions.ask import _ask_recursive
 from sympy.core import Add, Basic, Expr, Mul, Pow, S
 from sympy.core.logic import fuzzy_not, fuzzy_and, fuzzy_or
-from sympy.core.numbers import E, ImaginaryUnit, NaN, I, pi
+from sympy.core.numbers import E, Float, ImaginaryUnit, NaN, I, pi
 from sympy.functions import Abs, acos, acot, asin, atan, exp, factorial, log
 from sympy.matrices import Determinant, Trace
 from sympy.matrices.expressions.matexpr import MatrixElement
@@ -254,17 +254,19 @@ def _PositivePredicate_number(expr, assumptions):
     # we just evaluate the real part; otherwise we evaluate the imaginary
     # part to see if it actually evaluates to zero and if it does then
     # we make the comparison between the real part and zero.
+    # evalf may return a non-numeric expression (e.g. for a nested radical
+    # root), in which case no decision is possible at that step.
     if not i:
         r = r.evalf(2)
-        if r._prec != 1:
+        if r.is_Number and r._prec != 1:
             return r > 0
     else:
         i = i.evalf(2)
-        if i._prec != 1:
+        if i.is_Number and i._prec != 1:
             if i != 0:
                 return False
             r = r.evalf(2)
-            if r._prec != 1:
+            if r.is_Number and r._prec != 1:
                 return r > 0
 
 @PositivePredicate.register(Expr)

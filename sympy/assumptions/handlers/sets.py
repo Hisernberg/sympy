@@ -241,7 +241,9 @@ def _RealPredicate_number(expr, assumptions):
     # let as_real_imag() work first since the expression may
     # be simpler to evaluate
     i = expr.as_real_imag()[1].evalf(2)
-    if i._prec != 1:
+    # evalf may return a non-numeric expression (e.g. for a nested radical
+    # root), in which case no decision is possible here
+    if i.is_Number and i._prec != 1:
         return not i
     # allow None to be returned if we couldn't show for sure
     # that i was 0

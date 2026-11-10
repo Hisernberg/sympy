@@ -2610,3 +2610,19 @@ def test_queries_require_satask():
     assert _ask_recursive(Q.real(x) | ~Q.real(x)) is True
     assert _ask_recursive(Q.real(x) & ~Q.real(x)) is False
     assert _ask_recursive(Q.positive(x**y), Q.zero(x) & Q.positive(y)) is False
+
+
+def test_number_handler_nonnumeric_evalf():
+    # issue #31017 (item C6): the number handlers of Q.real and Q.positive
+    # assumed evalf(2) of as_real_imag() parts returns a Float.  For a
+    # nested-radical root like the quartic below, evalf returns a
+    # non-numeric Add and the handlers raised
+    # AttributeError: 'Add' object has no attribute '_prec'.
+    from sympy.polys.polyroots import roots
+    r = roots(y**4 + y + 1, y, multiple=True)[0]
+    assert ask(Q.real(r)) is None
+    assert ask(Q.positive(r)) is None
+    # exact and floating numbers are still decided
+    assert ask(Q.real(sqrt(2))) is True
+    assert ask(Q.real(1 + I)) is False
+    assert ask(Q.positive(-pi)) is False
