@@ -232,6 +232,19 @@ def test_meijerg_period():
     assert meijerg([1, 1], [], [1], [0], x).get_period() is oo  # log(1 + x)
 
 
+def test_meijerg_evalf_nonnumeric_argument():
+    # issue #31017 (item C9): evalf of a meijerg function with zoo (or oo)
+    # as argument raised AttributeError ('NoneType' object has no
+    # attribute 'has') because the argument's _eval_evalf returned None.
+    Z = S.ComplexInfinity
+    assert meijerg([], [], [0], [], Z).is_finite is None
+    # evalf keeps the unevaluated form (no numeric value exists for zoo)
+    assert meijerg([], [], [0], [], Z).evalf(5) == meijerg([], [], [0], [], Z)
+    # numeric evaluation is unchanged
+    assert meijerg([], [], [0], [], S(2)).evalf(5) == meijerg(
+        [], [], [0], [], S(2)).evalf(5)
+
+
 def test_hyper_unpolarify():
     from sympy.functions.elementary.exponential import exp_polar
     a = exp_polar(2*pi*I)*x

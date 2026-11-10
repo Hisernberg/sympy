@@ -711,6 +711,10 @@ class meijerg(TupleParametersBase):
         # (carefully so as not to loose the branch information), and evaluate
         # G(z'**(1/r)) = G(z'**n) = G(z).
         znum = self.argument._eval_evalf(prec)
+        if znum is None:
+            # e.g. zoo/oo: evalf has no numeric value to offer, and the
+            # polar-branch machinery below would crash on None
+            return
         if znum.has(exp_polar):
             znum, branch = znum.as_coeff_mul(exp_polar)
             if len(branch) != 1:
