@@ -72,7 +72,12 @@ def __cacheit(maxsize):
             try:
                 retval = cfunc(*args, **kwargs)
             except TypeError as e:
-                if not e.args or not e.args[0].startswith('unhashable type:'):
+                # e.args[0] can be a lazy message object (e.g. from
+                # Relational.__bool__), not a plain str, so it may not have
+                # .startswith; str() it instead of masking the real error
+                # with an AttributeError. See issue #31017 (item C11) and
+                # #26510 for the underlying TypeError.
+                if not e.args or not str(e.args[0]).startswith('unhashable type:'):
                     raise
                 retval = func(*args, **kwargs)
             return retval
