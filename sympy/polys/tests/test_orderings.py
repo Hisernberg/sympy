@@ -123,3 +123,11 @@ def test_build_product_order():
 
     assert build_product_order((("grlex", x, y), ("grlex", z, t)), [x, y, z, t]) == \
         build_product_order((("grlex", x, y), ("grlex", z, t)), [x, y, z, t])
+
+    # the product order must be hashable (the _ItemGetter components define
+    # __eq__, so they need a matching __hash__ too):
+    assert hash(build_product_order((("grlex", x, y), ("grlex", z, t)), [x, y, z, t])) == \
+        hash(build_product_order((("grlex", x, y), ("grlex", z, t)), [x, y, z, t]))
+
+    O = build_product_order((("lex", x), ("grlex", y, z)), [x, y, z])
+    assert hash(O) == hash(build_product_order((("lex", x), ("grlex", y, z)), [x, y, z]))
